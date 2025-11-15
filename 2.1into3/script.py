@@ -1,7 +1,7 @@
 import re
 import quopri
 
-input_file = "00005.vcf"
+input_file = "original.vcf"
 output_file = "contacts_converted_utf8.vcf"
 
 def unfold_lines(text):

@@ -44,7 +44,28 @@ def process_nbf(file_path, save_path):
         os.makedirs(extracted_folder, exist_ok=True)
         
         # חילוץ קובץ NBF באמצעות 7z.exe
-        subprocess.run([SEVEN_ZIP_PATH, "x", file_path, "-o" + extracted_folder], check=True)
+        result = subprocess.run(
+            [SEVEN_ZIP_PATH, "x", file_path, "-o" + extracted_folder],
+            capture_output=True,
+            text=True
+        )
+        logging.info(f"7z STDOUT:\n{result.stdout}")
+        logging.info(f"7z STDERR:\n{result.stderr}")
+        #אם התוכנה קורסת - לשמור לוג מפורט
+        if result.returncode != 0:
+            error_filename = f"7z_error_{int(__import__('time').time())}.txt"
+            with open(error_filename, "w", encoding="utf-8") as f:
+                f.write("פקודה:\n")
+                f.write(" ".join([SEVEN_ZIP_PATH, "x", file_path, "-o" + extracted_folder]) + "\n\n")
+                f.write("STDOUT:\n")
+                f.write(result.stdout + "\n")
+                f.write("STDERR:\n")
+                f.write(result.stderr + "\n")
+                f.write(f"\nקוד חזרה: {result.returncode}\n")
+            logging.error(f"שגיאה בהרצת 7z, ראה קובץ שגיאה: {error_filename}")
+            messagebox.showerror("שגיאת 7z", f"שגיאה בחילוץ הקובץ.\nראה פרטים בקובץ:\n{error_filename}")
+            return
+
         logging.info(f"חולץ קובץ NBF מ-{file_path}")
         
         # חיפוש קבצי VCF בתיקייה המחולצת
